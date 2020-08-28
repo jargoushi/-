@@ -237,8 +237,8 @@ springmvc是一个web层框架， 主要是与前端页面进行交互。 主要
 - @RequestMapping：用于处理请求 url 映射的注解，可用于类或方法上。
 - @RequestBody：注解实现接收http请求的json数据，将json转换为java对象。
 - @ResponseBody：注解实现将conreoller方法返回对象转化为json对象响应给客户。
-- @Conntroller：控制器的注解，表示是表现层,不能用用别的注解代替
-- @RestController: @ResponseBody+@Conntroller
+- @Controller：控制器的注解，表示是表现层,不能用用别的注解代替
+- @RestController: @ResponseBody+@Controller
 - @PathVariable: 获取url参数
 - @RequestParam: 获取参数
 
@@ -291,9 +291,11 @@ BeanFactory是最基本的IOC容器。 ApplicationContext对BeanFactory进行了
 
 Spring IOC 负责创建对象，管理对象（通过依赖注入（DI），装配对象，配置对象，并且管理这些对象的整个生命周期。其实就是个Map。
 
-### 什么是Spring beans？
+### 什么是Spring bean？
 
 spring将IOC容器中的对象称为bean。  会将xml中的bean标签解析为BeanDefinition对象存入到map中
+
+<id, beandefinition>
 
 ### 如何给Spring 容器提供配置bean
 
@@ -306,9 +308,10 @@ spring将IOC容器中的对象称为bean。  会将xml中的bean标签解析为B
 - 基于java配置
 
   ```java
-  @Configuration
+  @Configuration  //相当于beans
   public class Config {
   
+      // bean
   	@Bean
   	public User getUser() {
   		return new User();
@@ -431,7 +434,7 @@ Spring 容器能够自动装配相互合作的bean。
 
 ## Spring事务的实现方式和实现原理
 
-Spring事务的本质其实就是数据库对事务的支持，没有数据库的事务支持，spring是无法提供事务功能的。真正的数据库层的事务提交和回滚是通过binlog或者redo log实现的。
+Spring事务的本质其实就是数据库对事务的支持，没有数据库的事务支持，spring是无法提供事务功能的。真正的数据库层的事务提交和回滚是通过binlog或者redo log实现的。（InnoDB）
 
 ## Spring的事务传播行为
 
@@ -440,6 +443,9 @@ Spring事务的本质其实就是数据库对事务的支持，没有数据库�
 - PROPAGATION_REQUIRED		如果当前没有事务就创建一个新事务，如果当前存在事务，就加入该事务，该设置是最常用的设置。
 - PROPAGATION_SUPPORTS     支持当前事务，如果当前存在事务，就加入该事务，如果当前不存在事务，就以非事务执行。
 - PROPAGATION_MANDATORY   支持当前事务，如果当前存在事务，就加入该事务，如果当前不存在事务，就抛出异常。
+
+
+
 - PROPAGATION_REQUIRES_NEW   创建新事务，无论当前存不存在事务，都创建新事务。
 - PROPAGATION_NOT_SUPPORTED   以非事务方式执行操作，如果当前存在事务，就把当前事务挂起。
 - PROPAGATION_NEVER   以非事务方式执行，如果当前存在事务，则抛出异常。 
