@@ -8,7 +8,7 @@ server层主要包括连接器，缓存（mysql8.0之后移除），分析器，
 
 存储引擎层负责数据的存储。 最常见的存储引擎有Innodb, myisyam。 其中innodb包含了一个readlog日志模块（因为有这个日志才支持事务）
 
-![mysql系统架构](D:\资料\文档\mysql系统架构.jpg)
+![mysql系统架构](D:\课件\-\mysql系统架构.jpg)
 
 ## 一条查询是如何执行的
 
@@ -36,7 +36,7 @@ update tb_student A set A.age='19' where A.name='张三';
 
 执行更新的时候肯定要记录日志啦，这就会引入日志模块了，mysql 自带的日志模块式binlog（归档日志），所有的存储引擎都可以使用，我们常用的InnoDB引擎还自带了一个日志模块redo log。
 
-1. 先查询到张三这一条数据，如果有缓存，也是会用到缓存。
+1. 先查询到张三这一条数据
 2. 然后拿到查询的语句，把 age 改为19，然后调用引擎API接口，写入这一行数据，InnoDB引擎把数据保存在内存中，同时记录redo log，此时redo log进入prepare状态，然后告诉执行器，执行完成了，随时可以提交。
 3. 执行器收到通知后记录binlog，然后调用引擎接口，提交redo log 为提交状态。
 4. 更新完成。
@@ -107,6 +107,17 @@ update tb_student A set A.age='19' where A.name='张三';
 - 经常需要排序的列上需要创建索引
 - 在一张表中不应该创建过多的索引。
 
+```
+User 表   id , name, time, sex, address, createTime
+
+select * from User where id = 10;   聚簇索引
+select * from User where name = '张三'; 非聚簇索引
+
+select *  from User where id = 10 or age  = 18;   索引失效
+```
+
+
+
 ## 什么情况会导致索引失效
 
 - 如果查询条件中有or， 即使其中有索引列作为条件也不会走索引（PS: 只有or两边的条件都加了索引才能走索引）
@@ -120,7 +131,14 @@ update tb_student A set A.age='19' where A.name='张三';
   select * from user where age = 18  不会走索引
   ```
 
-- like查询以%开头不会走索引
+- like查询以%开头不会走索引，%结束会走索引
+
+  ```
+  select * from user where name like '%三';   不会走
+  select * from user where name like '三%';   走索引
+  ```
+
+  
 
 - 如果mysql优化器认为全表扫描更快则不会走索引
 
@@ -137,8 +155,15 @@ update tb_student A set A.age='19' where A.name='张三';
 ## 数据库的ACID
 
 - 原子性 事务的原子性确保动作要么全部完成，要么完全不起作用；
+
 - 一致性  执行事务前后，数据保持一致，多个事务对同一个数据读取的结果是相同的；
-- 隔离性 并发访问数据库时，一个用户的事务不被其他事务所干扰，各并发事务之间数据库是独立的；  
+
+- 隔离性 并发访问数据库时，一个用户的事务不被其他事务所干扰，各并发事务之间数据库是独立的； 
+
+  ``` 
+  update user set name = '张三' where id = 10;
+  ```
+
 - 持久性  一个事务被提交之后。它对数据库中数据的改变是持久的，即使数据库发生故障也不应该对其有任何影响。
 
 ## 什么是脏读？幻读？不可重复读？
@@ -194,7 +219,7 @@ update tb_student A set A.age='19' where A.name='张三';
 - **乐观锁**：假设不会发生并发冲突，只在提交操作时检查是否违反数据完整性。在修改数据的时候把事务锁起来，通过version的方式来进行锁定。实现方式：一般会使用版本号机制实现。
 
   ```sql
-  update PP_PAY set status = '2', version = version + 1 where  = '100011482020082812215421N' and version= #{version}
+  update PP_PAY set status = '2', version = 0 + 1 where  = '100011482020082812215421N' and version= 0
   ```
 
   
@@ -230,5 +255,11 @@ update tb_student A set A.age='19' where A.name='张三';
 
 ## mysql的分库分表
 
-- 垂直分库， 按照不同的业务拆分为不同的表，比如订单相关的表存到订单数据库。支付相关的表存到支付数据库
+- 垂直分库， 按照不同的业务拆分为不同的库，比如订单相关的表存到订单数据库。支付相关的表存到支付数据库
 - 水平分库， 比如支付表数据量过大， 查询过慢时可以拆分为多个支付表，数据结构是一模一样的分布到不同的数据库进行存储。
+
+## 历史归档	
+
+5000W
+
+500w   只保存15天的数据。。。。    大数据平台
